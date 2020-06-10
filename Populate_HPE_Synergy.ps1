@@ -170,32 +170,20 @@ function Create_Uplink_Sets {
     Write-Output "Adding Fibre Channel and FCoE Uplink Sets" | Timestamp
     $LIGFlex = Get-HPOVLogicalInterconnectGroup -Name "LIG-FlexFabric"
     $SAN_A_FC = Get-HPOVNetwork -Name "SAN A FC"
-    New-HPOVUplinkSet -Resource $LIGFlex -Name "US-SAN-A-FC" -Type FibreChannel -Networks $SAN_A_FC -UplinkPorts "Enclosure1:BAY3:Q2.1" | Wait-HPOVTaskComplete
+    New-HPOVUplinkSet -Resource $LIGFlex -Name "SAN-A-FC" -Type FibreChannel -Networks $SAN_A_FC -UplinkPorts "Enclosure1:BAY3:Q2.1" | Wait-HPOVTaskComplete
 
     $LIGFlex = Get-HPOVLogicalInterconnectGroup -Name "LIG-FlexFabric"
     $SAN_B_FC = Get-HPOVNetwork -Name "SAN B FC"
-    New-HPOVUplinkSet -Resource $LIGFlex -Name "US-SAN-B-FC" -Type FibreChannel -Networks $SAN_B_FC -UplinkPorts "Enclosure2:BAY6:Q2.1" | Wait-HPOVTaskComplete
-
-    $LIGFlex = Get-HPOVLogicalInterconnectGroup -Name "LIG-FlexFabric"
-    $SAN_A_FCoE = Get-HPOVNetwork -Name "SAN A FCoE"
-    New-HPOVUplinkSet -Resource $LIGFlex -Name "US-SAN-A-FCoE" -Type Ethernet -Networks $SAN_A_FCoE -UplinkPorts "Enclosure1:BAY3:Q1.1" -LacpTimer Short | Wait-HPOVTaskComplete
-
-    $LIGFlex = Get-HPOVLogicalInterconnectGroup -Name "LIG-FlexFabric"
-    $SAN_B_FCoE = Get-HPOVNetwork -Name "SAN B FCoE"
-    New-HPOVUplinkSet -Resource $LIGFlex -Name "US-SAN-B-FCoE" -Type Ethernet -Networks $SAN_B_FCoE -UplinkPorts "Enclosure2:BAY6:Q1.1" -LacpTimer Short | Wait-HPOVTaskComplete
+    New-HPOVUplinkSet -Resource $LIGFlex -Name "SAN-B-FC" -Type FibreChannel -Networks $SAN_B_FC -UplinkPorts "Enclosure2:BAY6:Q2.1" | Wait-HPOVTaskComplete
 
     Write-Output "Adding FlexFabric Uplink Sets" | Timestamp
     $LIGFlex = Get-HPOVLogicalInterconnectGroup -Name "LIG-FlexFabric"
-    $ESX_Mgmt = Get-HPOVNetwork -Name "ESX Mgmt"
-    New-HPOVUplinkSet -Resource $LIGFlex -Name "US-ESX-Mgmt" -Type Ethernet -Networks $ESX_Mgmt -UplinkPorts "Enclosure1:Bay3:Q1.2", "Enclosure2:Bay6:Q1.2" | Wait-HPOVTaskComplete
-
-    $LIGFlex = Get-HPOVLogicalInterconnectGroup -Name "LIG-FlexFabric"
-    $ESX_vMotion = Get-HPOVNetwork -Name "ESX vMotion"
-    New-HPOVUplinkSet -Resource $LIGFlex -Name "US-ESX-vMotion" -Type Ethernet -Networks $ESX_vMotion -UplinkPorts "Enclosure1:Bay3:Q1.3", "Enclosure2:Bay6:Q1.3" | Wait-HPOVTaskComplete
+    $Mgmt = Get-HPOVNetwork -Name "Mgmt"
+    New-HPOVUplinkSet -Resource $LIGFlex -Name "Mgmt" -Type Ethernet -Networks $Mgmt -UplinkPorts "Enclosure1:Bay3:Q1.2", "Enclosure2:Bay6:Q1.2" | Wait-HPOVTaskComplete
 
     $LIGFlex = Get-HPOVLogicalInterconnectGroup -Name "LIG-FlexFabric"
     $Prod_Nets = Get-HPOVNetwork -Name "Prod*"
-    New-HPOVUplinkSet -Resource $LIGFlex -Name "US-Prod" -Type Ethernet -Networks $Prod_Nets -UplinkPorts "Enclosure1:Bay3:Q1.4", "Enclosure2:Bay6:Q1.4" | Wait-HPOVTaskComplete
+    New-HPOVUplinkSet -Resource $LIGFlex -Name "Prod" -Type Ethernet -Networks $Prod_Nets -UplinkPorts "Enclosure1:Bay3:Q1.4", "Enclosure2:Bay6:Q1.4" | Wait-HPOVTaskComplete
 
     # Write-Output "Adding ImageStreamer Uplink Sets" | Timestamp
     # $ImageStreamerDeploymentNetworkObject = Get-HPOVNetwork -Name "Deployment" -ErrorAction Stop
@@ -302,10 +290,10 @@ function Create_Server_Profile_Template_SY480_Gen9_RHEL_Local_Boot {
 
     $SHT = Get-HPOVServerHardwareTypes -Name "SY 480 Gen9 1" -ErrorAction Stop
     $EnclGroup = Get-HPOVEnclosureGroup -Name "EG-Synergy-Local" -ErrorAction Stop
-    $Eth1 = Get-HPOVNetworkSet -Name "Prod" | New-HPOVServerProfileConnection -ConnectionID 1 -Name 'Prod-NetworkSet-1' -PortId "Mezz 3:1-c"
-    $Eth2 = Get-HPOVNetworkset -Name "Prod" | New-HPOVServerProfileConnection -ConnectionID 2 -Name 'Prod-NetworkSet-2' -PortId "Mezz 3:2-c"
-    $Deploy1 = Get-HPOVNetwork -Name "Deployment" | New-HPOVServerProfileConnection -ConnectionID 3 -Name 'Deployment Network A' -PortId "Mezz 3:1-a" #-Bootable -Priority Primary
-    $Deploy2 = Get-HPOVNetwork -Name "Deployment" | New-HPOVServerProfileConnection -ConnectionID 4 -Name 'Deployment Network B' -PortId "Mezz 3:2-a" #-Bootable -Priority Secondary
+    $Eth1 = Get-HPOVNetwork -Name "Mgmt" | New-HPOVServerProfileConnection -ConnectionID 1 -Name 'Mgmt-1' 
+    $Eth2 = Get-HPOVNetwork -Name "Mgmt" | New-HPOVServerProfileConnection -ConnectionID 2 -Name 'Mgmt-2' 
+    $Eth3 = Get-HPOVNetworkSet -Name "Prod" | New-HPOVServerProfileConnection -ConnectionID 3 -Name 'Prod-NetworkSet-1' 
+    $Eth4 = Get-HPOVNetworkset -Name "Prod" | New-HPOVServerProfileConnection -ConnectionID 4 -Name 'Prod-NetworkSet-2' 
     $LogicalDisk = New-HPOVServerProfileLogicalDisk -Name "SAS RAID1 SSD" -RAID RAID1 -NumberofDrives 2 -DriveType SASSSD -Bootable $True
     $StorageController = New-HPOVServerProfileLogicalDiskController -ControllerID Embedded -Mode RAID -Initialize -LogicalDisk $LogicalDisk
 
@@ -313,7 +301,7 @@ function Create_Server_Profile_Template_SY480_Gen9_RHEL_Local_Boot {
         Affinity                 = "Bay";
         BootMode                 = "BIOS";
         BootOrder                = "HardDisk";
-        Connections              = $Eth1, $Eth2, $Deploy1, $Deploy2;
+        Connections              = $Eth1, $Eth2, $Eth3, $Eth4;
         Description              = "Server Profile Template for HPE Synergy 480 Gen9 Compute Module with Local Boot for RHEL";
         EnclosureGroup           = $EnclGroup;
         Firmware                 = $False;
@@ -360,12 +348,12 @@ function Create_Server_Profile_Template_SY660_Gen9_Windows_SAN_Storage {
 
     $SHT = Get-HPOVServerHardwareTypes -Name "SY 660 Gen9 1" -ErrorAction Stop
     $EnclGroup = Get-HPOVEnclosureGroup -Name "EG-Synergy-Local" -ErrorAction Stop
-    $Eth1 = Get-HPOVNetworkSet -Name "Prod" | New-HPOVServerProfileConnection -ConnectionID 1 -Name 'Prod-NetworkSet-1' -PortId "Mezz 3:1-c"
-    $Eth2 = Get-HPOVNetworkset -Name "Prod" | New-HPOVServerProfileConnection -ConnectionID 2 -Name 'Prod-NetworkSet-2' -PortId "Mezz 3:2-c"
+    $Eth1 = Get-HPOVNetworkSet -Name "Prod" | New-HPOVServerProfileConnection -ConnectionID 1 -Name 'Prod-NetworkSet-1' #-PortId "Mezz 3:1-c"
+    $Eth2 = Get-HPOVNetworkset -Name "Prod" | New-HPOVServerProfileConnection -ConnectionID 2 -Name 'Prod-NetworkSet-2' #-PortId "Mezz 3:2-c"
     $FC1 = Get-HPOVNetwork -Name 'SAN A FC' | New-HPOVServerProfileConnection -connectionId 3
     $FC2 = Get-HPOVNetwork -Name 'SAN B FC' | New-HPOVServerProfileConnection -connectionId 4
     $LogicalDisk = New-HPOVServerProfileLogicalDisk -Name "SAS RAID5 SSD" -RAID RAID5 -NumberofDrives 3 -DriveType SASSSD -Bootable $True
-    $SANVol = Get-HPOVStorageVolume -Name "Shared-Volume-2" | New-HPOVServerProfileAttachVolume -VolumeID 1
+    $SANVol = Get-HPOVStorageVolume -Name "Shared-Volume-2" | New-HPOVServerProfileAttachVolume -VolumeID 1 -LunIdType Auto 
     $StorageController = New-HPOVServerProfileLogicalDiskController -ControllerID Embedded -Mode RAID -Initialize -LogicalDisk $LogicalDisk
 
     $params = @{
@@ -389,7 +377,7 @@ function Create_Server_Profile_Template_SY660_Gen9_Windows_SAN_Storage {
         StorageVolume            = $SANVol
     }
 
-    New-HPOVServerProfileTemplate @params | Wait-HPOVTaskComplete
+    New-HPOVServerProfileTemplate -Verbose @params | Wait-HPOVTaskComplete
     Write-Output "SY660 Gen9 with Local Boot and SAN Storage for Windows Server Profile Template Created" | Timestamp
 }
 
@@ -662,7 +650,7 @@ if (Test-Path $config_file) {
     }
 }
 else {
-    Write-warning "Configuration file '$config_file' not found.  Exiting."  | Timestamp
+    Write-warning "Configuration file '$config_file' not found.  Exiting." | Timestamp
     Exit
 }
 
